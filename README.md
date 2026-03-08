@@ -1,37 +1,30 @@
 # 🛒 Amazon Product & Customer Behavior Analyzer
 
-![Python 3.x](https://img.shields.io/badge/Python-3.x-blue?logo=python&logoColor=white)
-![License: MIT](https://img.shields.io/badge/License-MIT-green)
-![Platform](https://img.shields.io/badge/Platform-Colab%20%2B%20Kaggle-orange?logo=googlecolab&logoColor=white)
+> **A two-axis scoring model that evaluates every product on how much pressure it faces and how much traction it generates — then segments, stress-tests, and reports actionable findings.**
 
-A two-axis scoring model (Pressure Index × Traction Index) that processes 1,465 raw Amazon products (1,344 after deduplication and category filter), segments them into four strategic quadrants, detects suspicious reviews, and produces an interactive stakeholder dashboard.
-
-Runs on **Google Colab** and **Kaggle** without any changes.
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)](https://python.org)
+[![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-orange?logo=jupyter)](https://jupyter.org)
+[![Kaggle](https://img.shields.io/badge/Kaggle-Ready-20BEFF?logo=kaggle)](https://kaggle.com)
+[![Colab](https://img.shields.io/badge/Google%20Colab-Ready-F9AB00?logo=googlecolab)](https://colab.research.google.com)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green)](LICENSE)
 
 ---
 
-## Visuals
+## 📊 Dashboard Preview
 
-| Output | Description |
+*(Run the notebook to generate all charts — examples shown from a live run on 1,465 Amazon products)*
+
+| Dashboard | Quadrant Map |
 |---|---|
-| `02_segments_scatter.png` / `quadrant_map.png` | Segment scatter plot — products plotted in Pressure × Traction space |
-| `dashboard.png` | 6-panel static dashboard overview |
-| `dashboard.html` / `interactive.html` | Hover/zoom Plotly interactive dashboard |
-| `08_wordcloud.png` | Per-segment word clouds |
-| `07_pca.png` | PCA feature space + loadings |
+| 6-panel overview with segment distribution, PVS histogram, sensitivity heatmap | Pressure × Traction quadrant scatter with median thresholds |
 
-### Price Elasticity & Category Analysis
-<img width="1482" height="880" alt="06_price_elasticity" src="https://github.com/user-attachments/assets/2c5e98af-d389-40ee-b202-ff11ec458cbe" />
-
-### PCA — Feature Space
-<img width="1482" height="1030" alt="07_pca" src="https://github.com/user-attachments/assets/9a59e7ac-0a74-4fac-aa82-9d25ed2fa4ee" />
-
-### Word Clouds by Segment
-<img width="1939" height="887" alt="08_wordcloud" src="https://github.com/user-attachments/assets/c0ff2510-42fc-4c93-92bf-4f3b4e8ae96c" />
+| Price Elasticity | Word Clouds |
+|---|---|
+| Discount tiers, PVS regression, category PVS & pressure rates | Per-segment word clouds (Champions/Rising Stars/Core/Vulnerable) |
 
 ---
 
-## Scoring Framework
+## 🔍 Scoring Framework
 
 | Axis | Name | Measures |
 |---|---|---|
@@ -39,138 +32,180 @@ Runs on **Google Colab** and **Kaggle** without any changes.
 | Axis 2 | **Traction Index** | Engagement depth · quality signals · sentiment |
 | Combined | **Product Vitality Score (PVS)** | Weighted blend — the north-star metric |
 
----
+All components are **percentile ranks** — the model grades products relative to each other so output is meaningful regardless of whether the dataset skews premium or budget overall. This guarantees `mean ≈ 0.500` by mathematical construction.
 
-## Segments
-
-| Segment | Quadrant | Count | Share |
-|---|---|---|---|
-| 🏆 Champions | High traction · Low pressure | 259 | 19.3% |
-| 🌱 Rising Stars | High traction · High pressure | 411 | 30.6% |
-| 📊 Core | Low traction · Low pressure | 376 | 28.0% |
-| ⚠️ Vulnerable | Low traction · High pressure | 298 | 22.2% |
-
----
-
-## Key Results
-
-Results from the confirmed run on the Amazon Sales Dataset:
-
-- **Dataset:** 1,465 raw rows → 1,351 after deduplication → 1,344 after category filter
-- **Categories (≥20 products):** Electronics (490), Home&Kitchen (448), Computers&Accessories (375), OfficeProducts (31)
-- **Scoring indices:** Pressure mean=0.395 (σ=0.172) · Traction mean=0.521 (σ=0.150) · PVS mean=0.457 (σ=0.147)
-- **Model quality:** Silhouette=0.2437 · ANOVA p=3.88e-247 · Mean confidence=0.629
-- **Suspicious reviews:** 95 products flagged (7.1%)
-- **RFM distribution (product-level RFM segmentation):** Champions 252 · Loyal 341 · Potential 390 · At Risk 236 · Inactive 125
-  *(Note: RFM Champions and K-Means Champions are independent segmentation schemes with different criteria.)*
-- **PCA variance explained:** PC1=49.4% · PC2=27.8% → 77.2% cumulative
-- **Key sensitivity finding:** Discount −10% has the strongest lever effect on PVS
-- **Output files generated:** 11 PNG charts · 2 interactive HTML dashboards · results.csv · suspicious_products.csv
-
----
-
-## Quick Start
-
+### Pressure Index (PI)
 ```
-# Option A — Google Colab (recommended)
-# Open the notebook in Colab, run all cells. kagglehub downloads the dataset automatically.
+PI = 0.40 × discount_rank + 0.40 × rating_risk_rank + 0.20 × low_engagement_rank
+```
 
-# Option B — Kaggle
-# Fork the notebook, add the dataset "karkavelrajaj/amazon-sales-dataset" via "+ Add Data"
+### Traction Index (TI)
+```
+TI = 0.35 × engagement_rank + 0.35 × category_adj_rating_rank + 0.30 × positive_sentiment
+```
+
+### Product Vitality Score (PVS)
+```
+PVS = 0.50 × Traction + 0.30 × category_adj_rating + 0.20 × sentiment
 ```
 
 ---
 
-## Requirements
+## 🗺️ Segmentation
+
+Segments are assigned by **quadrant** — directly from each product's Pressure × Traction position, split at dataset medians. This guarantees all four segments are meaningfully populated.
+
+| Segment | Quadrant | Strategy |
+|---|---|---|
+| 🏆 **Champions** | High traction · Low pressure | Loyalty programme · cross-sell |
+| 🌱 **Rising Stars** | High traction · High pressure | Reduce discount dependency · generate reviews |
+| 📊 **Core** | Low traction · Low pressure | Stable baseline — monitor |
+| ⚠️ **Vulnerable** | Low traction · High pressure | Fix quality issues first — discount cuts won't fix traction |
+
+> K-Means (k=4) is still run in the background, but **only** to derive a per-product Confidence score (how cleanly a product sits in its quadrant vs. the other three centres). Segment labels come exclusively from the median-split quadrant logic.
+
+---
+
+## 📈 Sample Results (1,465 products · 4 categories)
 
 ```
-pandas
-numpy
-matplotlib
-seaborn
-plotly
-scikit-learn
-scipy
-wordcloud
-vaderSentiment
-textblob
-kagglehub
+SCORES  (percentile-rank — mean ≈ 0.500 by design)
+  Pressure:    0.500  Std=0.193
+  Traction:    0.504  Std=0.162
+  PVS:         0.505  Std=0.164
+
+SEGMENTS
+  🏆 Champions:    573 (39.1%)   hi traction · lo pressure
+  🌱 Rising Stars: 160 (10.9%)   hi traction · hi pressure
+  📊 Core:         159 (10.9%)   lo traction · lo pressure
+  ⚠️  Vulnerable:  573 (39.1%)   lo traction · hi pressure
+
+SEGMENT QUALITY
+  Silhouette:      0.1230
+  ANOVA p-value:   0.00e+00  ✅ Significant
+  Mean confidence: 0.743
+
+SUSPICIOUS REVIEWS
+  Total flagged:   102 (7.0%)
+  Isolation Forest anomalies:       73
+  Perfect rating + <10 reviews:     38
+  High volume + low sentiment:      12
+  Extreme discount + top rating:    15
+
+CATEGORY INSIGHTS
+  Strongest PVS:    OfficeProducts
+  Highest pressure: Electronics
+
+SENSITIVITY
+  Strongest lever:  Rating quality push  (+10.0% PVS)
+  Riskiest action:  Discount +10%  →  PVS -2.6%
 ```
 
 ---
 
-## Output Files
+## 🚀 Quick Start
+
+### Option A — Google Colab (recommended, zero setup)
+1. Open `Amazon_Customer_Behavior_Analyzer.ipynb` in Google Colab
+2. Run All (`Runtime → Run all`)
+3. The notebook auto-downloads the dataset via `kagglehub`
+4. Run Section 17 to download all output files
+
+### Option B — Kaggle
+1. Create a new Kaggle Notebook
+2. Add dataset: **[Amazon Sales Dataset](https://www.kaggle.com/datasets/karkavelrajaj/amazon-sales-dataset)** via `+ Add Data`
+3. Upload `Amazon_Customer_Behavior_Analyzer.ipynb`
+4. Run All — output files appear in the right-side panel
+
+### Option C — Local
+```bash
+pip install vaderSentiment kagglehub wordcloud plotly scikit-learn textblob pandas numpy matplotlib seaborn scipy
+jupyter notebook Amazon_Customer_Behavior_Analyzer.ipynb
+```
+
+---
+
+## 📦 Output Files
 
 | File | Description |
 |---|---|
-| `results.csv` | Full scored dataset (14 columns) |
-| `suspicious_products.csv` | 95 flagged products |
-| `dashboard.html` | Interactive Plotly dashboard |
-| `interactive_dark.html` | Dark-theme variant |
-| `01_index_distributions.png` | Score calibration check |
-| `02_segments_scatter.png` | Segment overview scatter |
-| `03_suspicious_reviews.png` | Suspicious review analysis |
-| `04_rfm_segments.png` | RFM segments |
-| `05_silhouette.png` | Silhouette quality plot |
-| `05b_sensitivity_heatmap.png` | Sensitivity heatmap |
-| `06_price_elasticity.png` | Price elasticity |
-| `07_pca.png` | PCA feature space |
-| `08_wordcloud.png` | Per-segment word clouds |
-| `09_category_heatmap.png` | Category comparison |
-| `10_rising_stars.png` | Rising stars discovery |
+| `results.csv` | Full scored dataset with all metrics |
+| `summary.txt` | Executive summary text report |
+| `dashboard.png` | 6-panel static overview |
+| `quadrant_map.png` | Pressure × Traction segment scatter |
+| `score_distributions.png` | Score calibration check |
+| `segment_quality.png` | Silhouette + sensitivity heatmap |
+| `price_analysis.png` | Price elasticity & category analysis |
+| `pca.png` | Feature space PCA + loadings |
+| `wordclouds.png` | Per-segment word clouds |
+| `rfm.png` | RFM segments + overlap heatmap |
+| `interactive.html` | Plotly interactive dashboard (open in browser) |
 
 ---
 
-## Category Insights
+## 🔬 Methodology
 
-| Category | Products | Mean Rating | Mean Discount | Mean PVS |
-|---|---|---|---|---|
-| OfficeProducts | 31 | 4.31 | 12.4% | 0.898 |
-| Computers&Accessories | 375 | 4.15 | 53.2% | 0.590 |
-| Electronics | 490 | 4.08 | 49.9% | 0.439 |
-| Home&Kitchen | 448 | 4.04 | 40.1% | 0.334 |
+### Why percentile ranks?
+Absolute scores are dataset-dependent — a "70% discount" means something different in electronics vs. office products. Percentile ranks normalize across the entire catalogue so every score is relative to peers. The mathematical consequence is `mean ≈ 0.500` for all axes — a useful sanity check.
 
-*Only categories with ≥20 products are included in segment analysis. Smaller categories are excluded from scoring.*
+### Sentiment pipeline
+```
+VADER (60%) + TextBlob (40%) → raw ensemble → Z-score calibration → clip(-3,3)/3.0
+```
+Z-score calibration ensures `mean ≈ 0` regardless of how uniformly positive Amazon reviews are.
 
----
+### Text cleaning
+Removes: CDN image URLs, HTML tags, `dp`/`ref`/`qid`/`sr`/`utm` tokens, file extensions. Average noise reduction: ~60-80% of raw text length.
 
-## Strategic Recommendations
+### Suspicious review detection
+Four independent signals (each contributes 1 point to Suspicion score):
+1. **Isolation Forest** — statistical anomaly in full feature space (contamination=5%)
+2. **Perfect + tiny** — rating ≥ 4.8 with < 10 reviews
+3. **Volume/sentiment gap** — top-10% review count + bottom-20% sentiment
+4. **Extreme discount trap** — discount > 80% + rating ≥ 4.5
 
-1. **Champions (259):** Launch loyalty programme · cross-sell into lower-PVS categories
-2. **Rising Stars (411):** Reduce discount dependency · invest in review generation
-3. **Vulnerable (298):** Address root quality issues · target average discount below 50%
-4. **Suspicious reviews (95):** Manual audit required before using PVS scores in decisions
-5. **Category priorities:** Invest in OfficeProducts expansion · restructure Electronics discount strategy
-
----
-
-## Model Architecture
-
-The model is structured in three layers:
-
-1. **Feature Engineering** — raw fields (rating, discount, review count, price, sentiment) are cleaned and normalised into dimensionless signals (`rating_norm`, `cat_rating_norm`, `engagement`, `discount_pct`).
-2. **Percentile Ranking** — each signal is ranked percentile-wise across all products, making scores relative rather than absolute and robust to outliers.
-3. **Weighted Combination** — percentile ranks are blended with tuned weights into the Pressure Index, Traction Index, and the composite Product Vitality Score (PVS).
-
-Segmentation uses **K-Means (k=4)** on the two-dimensional Pressure × Traction space. A **confidence score** is derived from the normalised inverse distance to each product's cluster centroid, indicating how cleanly the product sits within its segment.
+Products with Suspicion ≥ 1 are flagged. PVS scores for flagged products should not be used as-is without manual audit.
 
 ---
 
-## Methodology Notes
+## 📁 Repository Structure
 
-- **Sentiment:** VADER (60%) + TextBlob (40%) ensemble, Z-score calibrated (mean ≈ 0)
-- **Suspicious review detection:** Isolation Forest (contamination=0.05) + 3 rule-based heuristics (perfect rating + tiny review volume, volume/sentiment mismatch, extreme discount + top rating)
-- **RFM adapted for product data:** R = inverse discount · F = log review count · M = price × rating_norm
-- **Model health:** Shapiro-Wilk normality test · silhouette score · ANOVA + Tukey HSD · segment size check
-
----
-
-## Dataset
-
-[Amazon Sales Dataset by karkavelrajaj](https://www.kaggle.com/datasets/karkavelrajaj/amazon-sales-dataset) — hosted on Kaggle.
+```
+Amazon_Customer_Behavior_Analyzer/
+├── Amazon_Customer_Behavior_Analyzer.ipynb   # Main analysis notebook
+├── README.md                                  # This file
+├── LICENSE                                    # Apache 2.0
+└── .gitignore
+```
 
 ---
 
-## License
+## 🗂️ Dataset
 
-Apache License 2.0
+**[Amazon Sales Dataset](https://www.kaggle.com/datasets/karkavelrajaj/amazon-sales-dataset)** by Karavel Raja (Kaggle)
+
+The notebook auto-detects column roles by name pattern — it will work with any CSV that has columns containing the words `rating`, `discount`, `category`, `price`. No manual configuration required.
+
+---
+
+## 📋 Requirements
+
+```
+pandas >= 1.3
+numpy >= 1.21
+matplotlib >= 3.4
+seaborn >= 0.11
+plotly >= 5.0
+scikit-learn >= 0.24
+scipy >= 1.7
+wordcloud >= 1.8
+vaderSentiment >= 3.3
+textblob >= 0.17
+kagglehub >= 0.1
+```
+
+---
+
+## 📄 License
+
+Apache License 2.0 — see [LICENSE](LICENSE) for details.
