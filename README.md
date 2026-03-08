@@ -1,6 +1,8 @@
 # 🛒 Amazon Product & Customer Behavior Analyzer
 
-A two-axis scoring model that evaluates every product on **how much pressure it faces** and **how much traction it generates** — then segments, stress-tests, and reports actionable findings.
+A two-axis scoring model that evaluates every product on **how much pressure it
+faces** and **how much traction it generates** — then segments, stress-tests,
+and reports actionable findings.
 
 Runs on **Google Colab** and **Kaggle** without any changes.
 
@@ -16,33 +18,25 @@ Runs on **Google Colab** and **Kaggle** without any changes.
 
 ## Segments
 
-| Segment | Quadrant |
-|---|---|
-| 🏆 **Champions** | High traction · low pressure |
-| 🌱 **Rising Stars** | High traction · high pressure |
-| 📊 **Core** | Low traction · low pressure |
-| ⚠️ **Vulnerable** | Low traction · high pressure |
+| Segment | Quadrant | Description |
+|---|---|---|
+| 🏆 Champions | Hi traction · Lo pressure | Healthy, self-sustaining products |
+| 🌱 Rising Stars | Hi traction · Hi pressure | Strong fundamentals, needs optimisation |
+| 📊 Core | Lo traction · Lo pressure | Stable but unspectacular |
+| ⚠️ Vulnerable | Lo traction · Hi pressure | At-risk, needs intervention |
 
 ---
 
-## Sample Results (Amazon Sales Dataset, 1,465 products)
+## Quick Start
 
-| Metric | Value |
-|---|---|
-| Products | 1,465 |
-| Categories | 9 |
-| PVS Mean | 0.505 |
-| Silhouette | 0.1230 |
-| Suspicious reviews | 102 (7.0%) |
-| Best category (PVS) | OfficeProducts |
-| Most pressure | Electronics |
-| Strongest lever | Rating improvement (+10% PVS) |
+### Google Colab
+1. Open `Amazon_Customer_Behavior_Analyzer.ipynb` in Colab.
+2. Run all cells — `kagglehub` downloads the dataset automatically.
+3. Run the last cell to download all output files.
 
-### Segment Distribution
-- 🏆 Champions: 39.1%
-- ⚠️ Vulnerable: 39.1%
-- 🌱 Rising Stars: 10.9%
-- 📊 Core: 10.9%
+### Kaggle
+1. Add the [Amazon Sales Dataset](https://www.kaggle.com/datasets/karkavelrajaj/amazon-sales-dataset) via **+ Add Data**.
+2. Run all cells — output files appear in the right-hand output panel.
 
 ---
 
@@ -50,46 +44,57 @@ Runs on **Google Colab** and **Kaggle** without any changes.
 
 | File | Description |
 |---|---|
-| `results.csv` | Full scored dataset |
-| `summary.txt` | Executive summary |
-| `dashboard.png` | 6-panel overview |
-| `quadrant_map.png` | Segment scatter |
-| `price_analysis.png` | Price elasticity & categories |
-| `pca.png` | Feature space + loadings |
+| `results.csv` | Full scored dataset with all indices |
+| `summary.txt` | Executive summary report |
+| `dashboard.png` | 6-panel static overview |
+| `interactive.html` | Hover/zoom Plotly dashboard |
+| `interactive_dark.html` | Dark-theme version of the interactive dashboard |
+| `quadrant_map.png` | Pressure × Traction segment map |
+| `score_distributions.png` | Score calibration check |
+| `segment_quality.png` | Silhouette + sensitivity heatmap |
+| `price_analysis.png` | Price elasticity & category breakdown |
+| `pca.png` | PCA feature space + loadings |
 | `wordclouds.png` | Per-segment word clouds |
-| `rfm.png` | RFM segments |
-| `segment_quality.png` | Silhouette + sensitivity |
-| `interactive.html` | Interactive Plotly dashboard |
+| `rfm.png` | RFM segments + overlap heatmap |
+| `suspicious_products.csv` | Flagged products for manual audit |
 
 ---
 
-## How to Run
+## Sample Results
 
-### Google Colab
-1. Open the notebook in Colab
-2. Run all cells — dataset downloads automatically via `kagglehub`
+The outputs below were generated on the [Amazon Sales Dataset](https://www.kaggle.com/datasets/karkavelrajaj/amazon-sales-dataset) (1,465 products, 9 categories).
 
-### Kaggle
-1. Add dataset: **Amazon Sales Dataset** by karkavelrajaj
-2. Run all cells — output appears in the output panel
+### Dashboard
+![image2](image2)
 
-### Local
-```bash
-pip install -r requirements.txt
-jupyter notebook Amazon_Customer_Behavior_Analyzer.ipynb
-```
+### Price Elasticity & Category Analysis
+![image1](image1)
+
+### PCA — Feature Space
+![image3](image3)
+
+### Word Clouds by Segment
+![image4](image4)
 
 ---
 
-## Key Findings
+## Methodology
 
-1. **Discount barely hurts PVS** (β=−0.0014) — quality signals matter more than price
-2. **OfficeProducts** has the highest average PVS and lowest pressure rate (<5%)
-3. **Electronics** has ~27% high-pressure products — needs discount restructuring
-4. **7% suspicious reviews** detected via Isolation Forest + 3 rule-based signals
-5. **Rating improvement** is the strongest single lever (+10.0% PVS)
+- **Scoring**: Percentile-rank model — all scores are relative, not absolute.
+- **Segmentation**: Quadrant-based (split at Pressure × Traction medians). All four segments are always populated.
+- **Confidence**: K-Means distance score — how cleanly each product sits in its quadrant.
+- **Sentiment**: VADER (60%) + TextBlob (40%) ensemble, Z-score calibrated so mean ≈ 0.
+- **Fake detection**: Isolation Forest + 3 rule-based signals (perfect+tiny, volume/sentiment mismatch, extreme discount+top rating).
+- **RFM**: Adapted for product data — Recency = inverse discount, Frequency = review count, Monetary = original price.
+
+---
+
+## Dataset
+
+[Amazon Sales Dataset by karkavelrajaj](https://www.kaggle.com/datasets/karkavelrajaj/amazon-sales-dataset) — hosted on Kaggle.
 
 ---
 
 ## License
+
 Apache License 2.0
