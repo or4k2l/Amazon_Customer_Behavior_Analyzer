@@ -20,17 +20,14 @@ Runs on **Google Colab** and **Kaggle** without any changes.
 | `08_wordcloud.png` | Per-segment word clouds |
 | `07_pca.png` | PCA feature space + loadings |
 
-### Dashboard
-<img width="2685" height="1477" alt="dashboard" src="https://github.com/user-attachments/assets/170991ba-cfac-4ec6-8487-664fbfceb5fc" />
-
 ### Price Elasticity & Category Analysis
-<img width="2390" height="1397" alt="price_analysis" src="https://github.com/user-attachments/assets/4f153585-6808-4b8f-bc60-f867f374c437" />
+<img width="1482" height="880" alt="06_price_elasticity" src="https://github.com/user-attachments/assets/2c5e98af-d389-40ee-b202-ff11ec458cbe" />
 
 ### PCA — Feature Space
-<img width="2969" height="889" alt="pca" src="https://github.com/user-attachments/assets/b74f6ab6-1e01-4621-a453-75c0d33d1eab" />
+<img width="1482" height="1030" alt="07_pca" src="https://github.com/user-attachments/assets/9a59e7ac-0a74-4fac-aa82-9d25ed2fa4ee" />
 
 ### Word Clouds by Segment
-<img width="2985" height="635" alt="wordclouds" src="https://github.com/user-attachments/assets/80e13d56-442c-41b5-8d3c-908cc2666575" />
+<img width="1939" height="887" alt="08_wordcloud" src="https://github.com/user-attachments/assets/c0ff2510-42fc-4c93-92bf-4f3b4e8ae96c" />
 
 ---
 
