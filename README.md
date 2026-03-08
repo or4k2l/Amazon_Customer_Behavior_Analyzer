@@ -65,16 +65,16 @@ Runs on **Google Colab** and **Kaggle** without any changes.
 The outputs below were generated on the [Amazon Sales Dataset](https://www.kaggle.com/datasets/karkavelrajaj/amazon-sales-dataset) (1,465 products, 9 categories).
 
 ### Dashboard
-![image2](image2)
+<img width="2685" height="1477" alt="dashboard" src="https://github.com/user-attachments/assets/170991ba-cfac-4ec6-8487-664fbfceb5fc" />
 
 ### Price Elasticity & Category Analysis
-![image1](image1)
+<img width="2390" height="1397" alt="price_analysis" src="https://github.com/user-attachments/assets/4f153585-6808-4b8f-bc60-f867f374c437" />
 
 ### PCA — Feature Space
-![image3](image3)
+<img width="2969" height="889" alt="pca" src="https://github.com/user-attachments/assets/b74f6ab6-1e01-4621-a453-75c0d33d1eab" />
 
 ### Word Clouds by Segment
-![image4](image4)
+<img width="2985" height="635" alt="wordclouds" src="https://github.com/user-attachments/assets/80e13d56-442c-41b5-8d3c-908cc2666575" />
 
 ---
 
