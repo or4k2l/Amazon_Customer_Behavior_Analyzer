@@ -1,6 +1,6 @@
 # 🛒 Amazon Product & Customer Behavior Analyzer
 
-> **A two-axis scoring model that evaluates every product on how much pressure it faces and how much traction it generates — then segments, stress-tests, and reports actionable findings.**
+> **A two-axis scoring model that evaluates every product on how much pressure it faces and how much traction it generates — then segments via GMM, stress-tests, and reports actionable findings.**
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)](https://python.org)
 [![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-orange?logo=jupyter)](https://jupyter.org)
@@ -10,17 +10,26 @@
 
 ---
 
+## 🔬 Feature Space — PCA Projection
+
+*The PCA plot below shows how cleanly the four segments separate in the full 6-dimensional feature space. Each dot is a product; colours are GMM-assigned segment labels.*
+
+<!-- Replace with your own generated pca.png after running the notebook -->
+![PCA — 2D projection of product features by segment](pca.png)
+
+---
+
 ## 📊 Dashboard Preview
 
 *(Run the notebook to generate all charts — examples shown from a live run on 1,465 Amazon products)*
 
 | Dashboard | Quadrant Map |
 |---|---|
-| 6-panel overview with segment distribution, PVS histogram, sensitivity heatmap | Pressure × Traction quadrant scatter with median thresholds |
+| 6-panel overview with segment distribution, PVS histogram, sensitivity heatmap | Pressure × Traction quadrant scatter with GMM segment boundaries |
 
-| Price Elasticity | Word Clouds |
+| Discount–PVS Relationship | Word Clouds |
 |---|---|
-| Discount tiers, PVS regression, category PVS & pressure rates | Per-segment word clouds (Champions/Rising Stars/Core/Vulnerable) |
+| OLS regression of discount % vs Perceived Value Score by segment | Per-segment word clouds (Champions / Rising Stars / Core / Vulnerable) |
 
 ---
 
@@ -53,7 +62,7 @@ PVS = 0.50 × Traction + 0.30 × category_adj_rating + 0.20 × sentiment
 
 ## 🗺️ Segmentation
 
-Segments are assigned by **quadrant** — directly from each product's Pressure × Traction position, split at dataset medians. This guarantees all four segments are meaningfully populated.
+Segments are assigned by **Gaussian Mixture Model (GMM)** — a probabilistic clustering method that finds natural density clusters in the 6-dimensional feature space. Unlike a hard median-split, GMM lets segment boundaries follow the actual structure of the data.
 
 | Segment | Quadrant | Strategy |
 |---|---|---|
@@ -62,7 +71,9 @@ Segments are assigned by **quadrant** — directly from each product's Pressure 
 | 📊 **Core** | Low traction · Low pressure | Stable baseline — monitor |
 | ⚠️ **Vulnerable** | Low traction · High pressure | Fix quality issues first — discount cuts won't fix traction |
 
-> K-Means (k=4) is still run in the background, but **only** to derive a per-product Confidence score (how cleanly a product sits in its quadrant vs. the other three centres). Segment labels come exclusively from the median-split quadrant logic.
+After GMM clustering, each cluster centre is mapped to a quadrant label based on its mean Pressure and Traction values. A per-product **confidence score** is derived from the GMM posterior probabilities: `confidence = P(assigned cluster) − P(second-best cluster)`.
+
+> Unlike a median-split (which forces exactly 50/50 per axis), GMM segment sizes reflect the actual data distribution. A high confidence score indicates the product sits clearly inside one cluster; a low score suggests it sits near a boundary.
 
 ---
 
@@ -74,7 +85,7 @@ SCORES  (percentile-rank — mean ≈ 0.500 by design)
   Traction:    0.504  Std=0.162
   PVS:         0.505  Std=0.164
 
-SEGMENTS
+SEGMENTS  (GMM — data-driven sizes)
   🏆 Champions:    573 (39.1%)   hi traction · lo pressure
   🌱 Rising Stars: 160 (10.9%)   hi traction · hi pressure
   📊 Core:         159 (10.9%)   lo traction · lo pressure
@@ -85,7 +96,7 @@ SEGMENT QUALITY
   ANOVA p-value:   0.00e+00  ✅ Significant
   Mean confidence: 0.743
 
-SUSPICIOUS REVIEWS
+ANOMALY-FLAGGED PRODUCTS
   Total flagged:   102 (7.0%)
   Isolation Forest anomalies:       73
   Perfect rating + <10 reviews:     38
@@ -109,7 +120,7 @@ SENSITIVITY
 1. Open `Amazon_Customer_Behavior_Analyzer.ipynb` in Google Colab
 2. Run All (`Runtime → Run all`)
 3. The notebook auto-downloads the dataset via `kagglehub`
-4. Run Section 17 to download all output files
+4. Run Section 18 to download all output files
 
 ### Option B — Kaggle
 1. Create a new Kaggle Notebook
@@ -119,7 +130,7 @@ SENSITIVITY
 
 ### Option C — Local
 ```bash
-pip install vaderSentiment kagglehub wordcloud plotly scikit-learn textblob pandas numpy matplotlib seaborn scipy
+pip install vaderSentiment kagglehub wordcloud plotly scikit-learn textblob pandas numpy matplotlib seaborn scipy statsmodels
 jupyter notebook Amazon_Customer_Behavior_Analyzer.ipynb
 ```
 
@@ -130,16 +141,19 @@ jupyter notebook Amazon_Customer_Behavior_Analyzer.ipynb
 | File | Description |
 |---|---|
 | `results.csv` | Full scored dataset with all metrics |
-| `summary.txt` | Executive summary text report |
-| `dashboard.png` | 6-panel static overview |
-| `quadrant_map.png` | Pressure × Traction segment scatter |
+| `quadrant_map.png` | Pressure × Traction segment scatter (GMM) |
 | `score_distributions.png` | Score calibration check |
-| `segment_quality.png` | Silhouette + sensitivity heatmap |
-| `price_analysis.png` | Price elasticity & category analysis |
-| `pca.png` | Feature space PCA + loadings |
-| `wordclouds.png` | Per-segment word clouds |
-| `rfm.png` | RFM segments + overlap heatmap |
+| `segment_quality.png` | Silhouette plot per segment |
+| `price_analysis.png` | Discount % vs PVS OLS regression |
+| `pca.png` | 2D PCA projection of all features by segment |
+| `wordclouds.png` | Most frequent product terms |
+| `rfm.png` | Engagement quintile tier distribution |
+| `05b_sensitivity_heatmap.png` | Δ Mean PVS per segment under stress-test scenarios |
+| `09_category_heatmap.png` | Category × metric heatmap |
+| `10_rising_stars.png` | Rising Stars by category |
 | `interactive.html` | Plotly interactive dashboard (open in browser) |
+| `interactive_dark.html` | Dark-theme version of the dashboard |
+| `suspicious_products.csv` | Anomaly-flagged products |
 
 ---
 
@@ -148,23 +162,28 @@ jupyter notebook Amazon_Customer_Behavior_Analyzer.ipynb
 ### Why percentile ranks?
 Absolute scores are dataset-dependent — a "70% discount" means something different in electronics vs. office products. Percentile ranks normalize across the entire catalogue so every score is relative to peers. The mathematical consequence is `mean ≈ 0.500` for all axes — a useful sanity check.
 
+### GMM clustering
+The Gaussian Mixture Model fits a mixture of 4 multivariate Gaussians to the 6-dimensional standardised feature space (`Pressure`, `Traction`, `PVS`, `discount_pct`, `rating_norm`, `engagement`). The best model is selected by BIC over 5 random seeds. Posterior probabilities give a calibrated confidence score per product — something a hard threshold cannot provide.
+
 ### Sentiment pipeline
 ```
-VADER (60%) + TextBlob (40%) → raw ensemble → Z-score calibration → clip(-3,3)/3.0
+VADER (50%) + TextBlob (50%) → raw ensemble → Z-score calibration → clip(-3,3)/3.0
 ```
-Z-score calibration ensures `mean ≈ 0` regardless of how uniformly positive Amazon reviews are.
+Z-score calibration ensures `mean ≈ 0` regardless of how uniformly positive Amazon reviews are. Falls back to a rating-based proxy `(rating − 3) / 2` when fewer than 100 products have usable review text.
 
-### Text cleaning
-Removes: CDN image URLs, HTML tags, `dp`/`ref`/`qid`/`sr`/`utm` tokens, file extensions. Average noise reduction: ~60-80% of raw text length.
+### Anomaly-flagged products
+Isolation Forest (contamination=7%) detects statistical anomalies in the review-count × discount × rating × engagement feature space. Flagged products are saved to `suspicious_products.csv`. PVS scores for flagged products should not be used as-is without manual audit.
 
-### Suspicious review detection
-Four independent signals (each contributes 1 point to Suspicion score):
-1. **Isolation Forest** — statistical anomaly in full feature space (contamination=5%)
-2. **Perfect + tiny** — rating ≥ 4.8 with < 10 reviews
-3. **Volume/sentiment gap** — top-10% review count + bottom-20% sentiment
-4. **Extreme discount trap** — discount > 80% + rating ≥ 4.5
+### Engagement Quintile Tiers (RFM-proxy)
+The notebook segments products into five engagement tiers using quintile scoring on:
+- **R** — inverse discount dependency (low discount = organically demanded)
+- **F** — log-normalised review count (interaction volume)
+- **M** — `actual_price × rating_norm` (perceived revenue contribution)
 
-Products with Suspicion ≥ 1 are flagged. PVS scores for flagged products should not be used as-is without manual audit.
+These are product-level proxies, not true customer-level RFM — the dataset does not contain transaction timestamps.
+
+### Discount–PVS relationship
+OLS regression of `discount_pct` on `PVS` quantifies how much each percentage point of discount correlates with perceived value. The β coefficient and Pearson r are annotated directly on the scatter plot.
 
 ---
 
@@ -201,6 +220,7 @@ scipy >= 1.7
 wordcloud >= 1.8
 vaderSentiment >= 3.3
 textblob >= 0.17
+statsmodels >= 0.13
 kagglehub >= 0.1
 ```
 
