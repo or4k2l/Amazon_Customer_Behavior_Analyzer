@@ -176,4 +176,4 @@ Segmentation uses **K-Means (k=4)** on the two-dimensional Pressure × Traction 
 
 ## License
 
-MIT
+Apache License 2.0
