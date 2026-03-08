@@ -92,4 +92,4 @@ jupyter notebook Amazon_Customer_Behavior_Analyzer.ipynb
 ---
 
 ## License
-MIT
+Apache License 2.0
