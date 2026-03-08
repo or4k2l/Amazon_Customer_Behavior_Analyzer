@@ -1,7 +1,7 @@
 # Amazon Product & Customer Behavior Analyzer
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
-![License](https://img.shields.io/badge/License-MIT-green)
+![License](https://img.shields.io/badge/License-Apache%202.0-green)
 ![Platform](https://img.shields.io/badge/Platform-Kaggle%20%7C%20Colab-orange?logo=google-colab)
 
 ## Abstract
@@ -182,7 +182,7 @@ All 14 improvements from the design specification are implemented:
 
 ## License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file for details.
 
 Dataset: [`karkavelrajaj/amazon-sales-dataset`](https://www.kaggle.com/datasets/karkavelrajaj/amazon-sales-dataset)
 on Kaggle (originally scraped from Amazon.in).
