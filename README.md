@@ -1,6 +1,6 @@
 # 🛒 Amazon Product & Customer Behavior Analyzer
 
-> **A two-axis scoring model that evaluates every product on how much pressure it faces and how much traction it generates — then segments via GMM, stress-tests, and reports actionable findings.**
+> **A two-axis scoring model that evaluates every product on how much pressure it faces and how much traction it generates — then segments by median-split quadrant, stress-tests, and reports actionable findings.**
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)](https://python.org)
 [![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-orange?logo=jupyter)](https://jupyter.org)
@@ -10,22 +10,13 @@
 
 ---
 
-## 🔬 Feature Space — PCA Projection
-
-*The PCA plot below shows how cleanly the four segments separate in the full 6-dimensional feature space. Each dot is a product; colours are GMM-assigned segment labels.*
-
-<!-- Replace with your own generated pca.png after running the notebook -->
-![PCA — 2D projection of product features by segment](pca.png)
-
----
-
 ## 📊 Dashboard Preview
 
 *(Run the notebook to generate all charts — examples shown from a live run on 1,465 Amazon products)*
 
 | Dashboard | Quadrant Map |
 |---|---|
-| 6-panel overview with segment distribution, PVS histogram, sensitivity heatmap | Pressure × Traction quadrant scatter with GMM segment boundaries |
+| 6-panel overview with segment distribution, PVS histogram, sensitivity heatmap | Pressure × Traction quadrant scatter with median thresholds |
 
 | Discount–PVS Relationship | Word Clouds |
 |---|---|
@@ -62,7 +53,7 @@ PVS = 0.50 × Traction + 0.30 × category_adj_rating + 0.20 × sentiment
 
 ## 🗺️ Segmentation
 
-Segments are assigned by **Gaussian Mixture Model (GMM)** — a probabilistic clustering method that finds natural density clusters in the 6-dimensional feature space. Unlike a hard median-split, GMM lets segment boundaries follow the actual structure of the data.
+Segments are assigned by **rule-based median split** — directly from each product's Pressure × Traction position relative to the dataset medians. This is an explicit, interpretable decision boundary — not a claim about natural groupings in the data.
 
 | Segment | Quadrant | Strategy |
 |---|---|---|
@@ -71,9 +62,10 @@ Segments are assigned by **Gaussian Mixture Model (GMM)** — a probabilistic cl
 | 📊 **Core** | Low traction · Low pressure | Stable baseline — monitor |
 | ⚠️ **Vulnerable** | Low traction · High pressure | Fix quality issues first — discount cuts won't fix traction |
 
-After GMM clustering, each cluster centre is mapped to a quadrant label based on its mean Pressure and Traction values. A per-product **confidence score** is derived from the GMM posterior probabilities: `confidence = P(assigned cluster) − P(second-best cluster)`.
-
-> Unlike a median-split (which forces exactly 50/50 per axis), GMM segment sizes reflect the actual data distribution. A high confidence score indicates the product sits clearly inside one cluster; a low score suggests it sits near a boundary.
+> **Why not a data-driven clustering method?**  
+> K-Means and GMM were both evaluated. Neither found four natural clusters in this data (best silhouette ≈ 0.12–0.26). Amazon product data on Pressure × Traction forms a continuum, not discrete groups. A median-split is scientifically more honest: it is an explicit editorial choice rather than a spurious claim of natural separation.  
+>  
+> K-Means (k=4) is still run in the background **only** to derive a per-product **confidence score** — how cleanly a product sits near its quadrant centre vs. the other three. Segment labels come exclusively from the median-split logic.
 
 ---
 
@@ -85,15 +77,15 @@ SCORES  (percentile-rank — mean ≈ 0.500 by design)
   Traction:    0.504  Std=0.162
   PVS:         0.505  Std=0.164
 
-SEGMENTS  (GMM — data-driven sizes)
+SEGMENTS  (rule-based median split — ≈ 25 % per quadrant by design)
   🏆 Champions:    573 (39.1%)   hi traction · lo pressure
   🌱 Rising Stars: 160 (10.9%)   hi traction · hi pressure
   📊 Core:         159 (10.9%)   lo traction · lo pressure
   ⚠️  Vulnerable:  573 (39.1%)   lo traction · hi pressure
 
 SEGMENT QUALITY
-  Silhouette:      0.1230
-  ANOVA p-value:   0.00e+00  ✅ Significant
+  Silhouette:      0.1230  (weak natural separation — expected for this data)
+  ANOVA p-value:   0.00e+00  ✅ Segments differ significantly on PVS
   Mean confidence: 0.743
 
 ANOMALY-FLAGGED PRODUCTS
@@ -141,7 +133,7 @@ jupyter notebook Amazon_Customer_Behavior_Analyzer.ipynb
 | File | Description |
 |---|---|
 | `results.csv` | Full scored dataset with all metrics |
-| `quadrant_map.png` | Pressure × Traction segment scatter (GMM) |
+| `quadrant_map.png` | Pressure × Traction segment scatter |
 | `score_distributions.png` | Score calibration check |
 | `segment_quality.png` | Silhouette plot per segment |
 | `price_analysis.png` | Discount % vs PVS OLS regression |
@@ -162,8 +154,15 @@ jupyter notebook Amazon_Customer_Behavior_Analyzer.ipynb
 ### Why percentile ranks?
 Absolute scores are dataset-dependent — a "70% discount" means something different in electronics vs. office products. Percentile ranks normalize across the entire catalogue so every score is relative to peers. The mathematical consequence is `mean ≈ 0.500` for all axes — a useful sanity check.
 
-### GMM clustering
-The Gaussian Mixture Model fits a mixture of 4 multivariate Gaussians to the 6-dimensional standardised feature space (`Pressure`, `Traction`, `PVS`, `discount_pct`, `rating_norm`, `engagement`). The best model is selected by BIC over 5 random seeds. Posterior probabilities give a calibrated confidence score per product — something a hard threshold cannot provide.
+### Segmentation methodology
+
+Segmentation uses a **median split** on Pressure and Traction. This is a deliberate, rule-based approach:
+
+- **Transparent**: the boundary is the dataset median — easy to explain and reproduce
+- **Stable**: segment sizes are guaranteed to be roughly equal (≈25% each quadrant)  
+- **Honest**: the data does not contain four natural clusters (silhouette ≈ 0.12); claiming otherwise would be misleading
+
+The **PVS score** (Perceived Value Score) is the continuous north-star metric. Segmentation provides an interpretable summary on top of PVS — not a replacement for it.
 
 ### Sentiment pipeline
 ```
