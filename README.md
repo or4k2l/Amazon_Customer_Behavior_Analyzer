@@ -12,7 +12,7 @@
 
 ## 📊 Dashboard Preview
 
-*(Run the notebook to generate all charts — examples shown from a live run on 1,465 Amazon products)*
+*(Run the notebook to generate all charts — examples shown from a live run on 1,465 Amazon products across 2 categories)*
 
 | Dashboard | Quadrant Map |
 |---|---|
@@ -69,7 +69,7 @@ Segments are assigned by **rule-based median split** — directly from each prod
 
 ---
 
-## 📈 Sample Results (1,465 products · 4 categories)
+## 📈 Sample Results (1,465 products · 2 categories)
 
 ```
 SCORES  (percentile-rank — mean ≈ 0.500 by design)
@@ -84,19 +84,15 @@ SEGMENTS  (rule-based median split — ≈ 25 % per quadrant by design)
   ⚠️  Vulnerable:  573 (39.1%)   lo traction · hi pressure
 
 SEGMENT QUALITY
-  Silhouette:      0.1230  (weak natural separation — expected for this data)
-  ANOVA p-value:   0.00e+00  ✅ Segments differ significantly on PVS
+  Silhouette:      0.1230
+  ANOVA p-value:   0.00e+00  ✅ Significant
   Mean confidence: 0.743
 
-ANOMALY-FLAGGED PRODUCTS
+SUSPICIOUS REVIEWS
   Total flagged:   102 (7.0%)
-  Isolation Forest anomalies:       73
-  Perfect rating + <10 reviews:     38
-  High volume + low sentiment:      12
-  Extreme discount + top rating:    15
 
 CATEGORY INSIGHTS
-  Strongest PVS:    OfficeProducts
+  Categories:      Computers & Accessories · Electronics
   Highest pressure: Electronics
 
 SENSITIVITY
