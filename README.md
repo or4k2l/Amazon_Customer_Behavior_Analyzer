@@ -8,6 +8,7 @@
 [![Colab](https://img.shields.io/badge/Google%20Colab-Ready-F9AB00?logo=googlecolab)](https://colab.research.google.com)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green)](LICENSE)
 
+<img width="1482" height="1030" alt="quadrant_map" src="https://github.com/user-attachments/assets/f492f1d8-43e4-4a2c-9322-900b88cd7e01" />
 ---
 
 ## 📊 Dashboard Preview
